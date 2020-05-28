@@ -1,0 +1,180 @@
+version: 2.1
+
+orbs:
+  docker: circleci/docker@1.0.1
+  helm: circleci/helm@0.2.3
+  kubernetes: circleci/kubernetes@0.11.0
+  node: circleci/node@2.1.1
+
+aliases:
+  - &restore_repo_cache
+    keys:
+      - repo-{{ .Environment.CIRCLE_SHA1 }}
+  - &save_repo_cache
+    <<: *restore_repo_cache
+    paths:
+      - ./
+  - &restore_node_modules_cache
+    keys:
+      - node_modules-{{ checksum "yarn.lock" }}
+  - &save_node_modules_cache
+    <<: *restore_node_modules_cache
+    paths:
+      - ./node_modules
+  - &restore_build_cache
+    keys:
+      - assets-{{ .Environment.CIRCLE_SHA1 }}
+  - &save_build_cache
+    <<: *restore_build_cache
+    paths:
+      - ./dist
+
+jobs:
+  checkout:
+    steps:
+      - checkout
+      - save_cache: *save_repo_cache
+
+  version:
+    executor:
+      name: node/default
+    steps:
+      - restore_cache: *restore_repo_cache
+      - run: export PACKAGE_VERSION=$(cat VERSION)
+      - run: echo $PACKAGE_VERSION
+      - run: cat package.json
+      - run: yarn version --no-git-tag-version --allow-same-version $PACKAGE_VERSION
+      - run: cat package.json
+      - save_cache: *save_repo_cache
+
+  install:
+    executor:
+      name: node/default
+    steps:
+      - restore_cache:
+          keys:
+            - repo-{{ .Environment.CIRCLE_SHA1 }}
+      - run: node --version
+      - run: yarn --version
+      - run: yarn install
+      - save_cache: *save_node_modules_cache
+
+  test:e2e:
+    executor:
+      name: node/default
+    steps:
+      - restore_cache: *restore_repo_cache
+      - restore_cache: *restore_node_modules_cache
+      - run: yarn test:e2e:coverage --maxWorkers=2
+      - store_artifacts:
+        path: coverage-e2e/
+      - store_artifacts:
+        path: reports/junit/e2e/
+      - store_test_results:
+        path: coverage-e2e/
+      - store_test_results:
+        path: reports/junit/e2e/
+
+  test:unit:
+    executor:
+      name: node/default
+    steps:
+      - restore_cache: *restore_repo_cache
+      - restore_cache: *restore_node_modules_cache
+      - run: yarn test:coverage --maxWorkers=2
+      - store_artifacts:
+        path: coverage/
+      - store_artifacts:
+        path: reports/junit/unit/
+      - store_test_results:
+        path: coverage/
+      - store_test_results:
+        path: reports/junit/unit/
+
+  test:lint:
+    executor:
+      name: node/default
+    steps:
+      - restore_cache: *restore_repo_cache
+      - restore_cache: *restore_node_modules_cache
+      - run: yarn lint:ci
+      - store_artifacts:
+        path: reports/eslint.xml
+      - store_test_results:
+        path: reports/eslint.xml
+
+  build:
+    executor:
+      name: node/default
+    steps:
+      - restore_cache: *restore_repo_cache
+      - restore_cache: *restore_node_modules_cache
+      - run: yarn build
+      - save_cache: *save_build_cache
+
+  publish:develop:
+    executor:
+      name: docker/default
+    steps:
+      - restore_cache: *restore_repo_cache
+      - restore_cache: *restore_build_cache
+      - run: docker --version
+      - run: echo -n "$DOCKER_REGISTRY_PASSWORD" |docker login $DOCKER_REGISTRY -u $DOCKER_REGISTRY_USER --password-stdin
+      - docker/publish:
+          image: k8s-hello-world-test
+          registry: $DOCKER_REGISTRY
+
+  deploy:develop:
+    executor:
+      name: helm/default
+    steps:
+      - restore_cache: *restore_repo_cache
+      - restore_cache: *restore_build_cache
+      - kubernetes/install-kubeconfig:
+          kubeconfig: KUBECONFIG_DATA
+      - helm/install-helm-client:
+          version: v3.2.2
+      - run: helm version
+      - run: helm ls --namespace $HELM_NAMESPACE
+      - run: helm repo add hcd $HELM_REGISTRY
+      - run: helm repo update
+      - helm/upgrade-helm-chart:
+          chart: k8s-hello-world-test
+          namespace: $HELM_NAMESPACE
+          release_name: k8s-hello-world-test
+          values-to-override: image.tag=$CIRCLE_SHA1
+      - run: helm ls --namespace $HELM_NAMESPACE
+
+workflows:
+  default:
+    jobs:
+      - checkout
+      - version:
+          requires:
+            - checkout
+      - install:
+          requires:
+            - version
+      - test:lint:
+          requires:
+            - install
+      - test:unit:
+          requires:
+            - install
+      - test:e2e:
+          requires:
+            - install
+      - build:
+          requires:
+            - test:lint
+            - test:unit
+            - test:e2e
+      - publish:develop:
+          filters:
+            branches:
+              only: /^develop$/
+          requires:
+            - build
+      - deploy:develop:
+          requires:
+            - publish:develop
