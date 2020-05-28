@@ -1,0 +1,10 @@
+################################################
+# Test Configuration Overrides
+#
+# Load criteria:
+# - NODE_ENV=test (e.g. when Jest is running).
+################################################
+
+server:
+  swagger:
+    prefix: /docs # Changed so we can test default vs configured behaviour.
