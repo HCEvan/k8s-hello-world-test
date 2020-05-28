@@ -34,18 +34,22 @@ describe('HealthController (e2e)', () => {
         await app.init();
     });
 
-    it(`GET /health`, () => {
-        return request(app.getHttpServer())
+    it(`GET /health`, async () => {
+        const response = await request(app.getHttpServer())
             .get('/health')
-            .expect(200)
-            .expect(expectedResult);
+            .send();
+
+        expect(response.status).toEqual(200);
+        expect(response.body).toEqual(expectedResult);
     });
 
-    it(`GET /health/check`, () => {
-        return request(app.getHttpServer())
+    it(`GET /health/check`, async () => {
+        const response = await request(app.getHttpServer())
             .get('/health/check')
-            .expect(200)
-            .expect(expectedResult);
+            .send();
+
+        expect(response.status).toEqual(200);
+        expect(response.body).toEqual(expectedResult);
     });
 
     afterAll(async () => {

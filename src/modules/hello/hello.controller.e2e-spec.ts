@@ -23,18 +23,18 @@ describe('HelloController (e2e)', () => {
         await app.init();
     });
 
-    it(`GET /`, () => {
-        return request(app.getHttpServer())
+    it(`GET /`, async () => {
+        const response = await request(app.getHttpServer())
             .get('/')
-            .expect(200)
-            .expect({
-                appVersion,
-                hostname: os.hostname(),
-                swagger: {
-                    enabled: true,
-                    prefix: '/docs',
-                },
-            });
+            .send();
+
+        expect(response.status).toEqual(200);
+
+        // Partial match due to other configurations possibly being loaded which can change the Swagger results.
+        expect(response.body).toEqual(expect.objectContaining({
+            appVersion,
+            hostname: os.hostname(),
+        }));
     });
 
     afterAll(async () => {
