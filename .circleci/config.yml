@@ -106,7 +106,9 @@ jobs:
     steps:
       - restore_cache: *restore_repo_cache
       - restore_cache: *restore_node_modules_cache
-      - run: yarn build
+      - run: time yarn build
+      - run: ls -alh dist/
+      - run: du -hs dist/
       - save_cache: *save_build_cache
 
   publish-develop:
