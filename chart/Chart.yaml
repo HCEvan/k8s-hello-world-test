@@ -1,0 +1,9 @@
+apiVersion: v2
+appVersion: "0.0.1"
+description: Deploy the K8s Hello World Test chart.
+name: k8s-hello-world-test
+version: 0.1.0
+dependencies:
+  - name: common
+    version: "0.0.5"
+    repository: "@incubator"

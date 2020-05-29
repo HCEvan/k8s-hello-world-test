@@ -1,0 +1,13 @@
+{{- define "k8s-hello-world-test.configmap" -}}
+data:
+{{- if .Values.configMaps.data }}
+{{- range $index, $content := .Values.configMaps.data }}
+  {{ $index }}: |-
+{{- tpl $content $ | nindent 4 }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- if .Values.configMaps.create -}}
+{{- template "common.configmap" (list . "k8s-hello-world-test.configmap") -}}
+{{- end -}}

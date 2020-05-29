@@ -1,0 +1,7 @@
+{{- define "k8s-hello-world-test.ingress" -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- end -}}
+
+{{- if .Values.ingress.enabled }}
+{{- template "common.ingress" (list . "k8s-hello-world-test.ingress") -}}
+{{- end -}}

@@ -1,0 +1,9 @@
+{{- template "common.service" (list . "k8s-hello-world-test.service") -}}
+
+{{- define "k8s-hello-world-test.service" -}}
+spec:
+  ports:
+    - name: {{ .Values.service.portName }}
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.portName }}
+{{- end -}}

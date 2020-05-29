@@ -1,0 +1,68 @@
+{{- template "common.deployment" (list . "k8s-hello-world-test.deployment") -}}
+
+{{- define "k8s-hello-world-test.deployment" -}}
+{{- $fullname := include "common.fullname" . -}}
+apiVersion: apps/v1
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "common.name" . }}
+      release: {{ .Release.Name | quote }}
+  template:
+    metadata:
+      annotations:
+        checksum/configmap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+    spec:
+      containers:
+      - {{ template "common.container" (list . "k8s-hello-world-test.deployment.container") }}
+      volumes:
+      {{- if or .Values.secrets.create (hasKey .Values.secrets "name") }}
+      - name: secrets
+        secret:
+        {{- if .Values.secrets.create }}
+          secretName: {{ $fullname }}
+        {{- else if .Values.secrets.name }}
+          secretName: {{ .Values.secrets.name }}
+        {{- end }}
+      {{- end }}
+      {{- if or .Values.configMaps.create (hasKey .Values.configMaps "name") }}
+      - name: config-maps
+        configMap:
+        {{- if .Values.configMaps.create }}
+          name: {{ $fullname }}
+        {{- else if .Values.configMaps.name }}
+          name: {{ .Values.configMaps.name }}
+        {{- end }}
+      {{- end -}}
+{{- end -}}
+
+{{- define "k8s-hello-world-test.deployment.container" -}}
+ports:
+  - name: {{ .Values.service.portName }}
+    containerPort: {{ .Values.service.targetPort }}
+livenessProbe:
+  httpGet:
+    path: /health
+    port: {{ .Values.service.portName }}
+  initialDelaySeconds: 3
+readinessProbe:
+  httpGet:
+    path: /health
+    port: {{ .Values.service.portName }}
+  initialDelaySeconds: 3
+{{ if .Values.configFiles -}}
+env:
+- {{ template "common.envvar.value" (list "APP_CONFIG_FILES" (join "," .Values.configFiles)) }}
+{{- end }}
+volumeMounts:
+{{- if or .Values.secrets.create (hasKey .Values.secrets "name") }}
+- name: secrets
+  mountPath: /home/node/config/secrets
+{{- end -}}
+{{- if or .Values.configMaps.create (hasKey .Values.configMaps "name") }}
+- name: config-maps
+  mountPath: /home/node/config/maps
+{{- end -}}
+{{- end -}}
