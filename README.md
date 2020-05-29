@@ -29,6 +29,27 @@ When the API starts up it uses default values as specified in the `src/config.sc
 | server.swagger.enabled | APP_SERVER_SWAGGER_ENABLED | Whether or not to enable the Swagger API documentation or not. | boolean | false |
 | server.swagger.prefix | APP_SERVER_SWAGGER_PREFIX | The Swagger prefix to use. | string | /swagger |
 
+## Implementation
+
+The actual implementation source code can be found within the [src](src) directory, with the most pertinent business logic being found within the [src/modules](src/modules) directories.
+
+| Module | Public Route | Purpose | 
+| --- | --- | --- |
+| config | N/A | Provides access to the configuration throughout the application logic. |
+| health | /health | Returns 200 when the application is listening and is up. This is used by the health checking in Kubernetes to ensure only applications that are running have requests routed to them. Utilises the [NestJS Terminus](https://github.com/nestjs/terminus) module. |
+| hello | / | Returns the current application version, along with the current pod the API is running within, plus some Swagger details. |
+| N/A | /swagger | Serves the Swagger / OpenAPI documentation, if enabled in the configuration. More information can be found below. |
+
+In addition to this, located within the [src/main.ts](src/main.ts) file you can find the server implementation, which includes the following among other things:
+
+| Component | Purpose |
+| --- | --- |
+| [Fastify](https://www.fastify.io/) | Highly performant web server written in Node. |
+| [Helmet](https://helmetjs.github.io/) | Security middleware which takes care of many things outright. |
+| [Morgan](https://github.com/expressjs/morgan) | Morgan request logger, which allows Apache common format request logging in addition to the standard NestJS application logging. |
+
+> **NOTE:** One of the things that still needs implementation would be a `metrics` endpoint for Prometheus, that provides useful information such as the amount of requests that have hit the server, etc, which could be scraped to provide live metrics and monitoring.
+
 ## Swagger / OpenAPI
 
 This API includes and example implementation of [Swagger/OpenAPI](https://swagger.io/resources/open-api/), normally configured at the `/swagger` route when the `server.swagger.enabled` flag is set to `true`.
