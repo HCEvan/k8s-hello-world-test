@@ -8,22 +8,19 @@ orbs:
 
 aliases:
   - &restore_repo_cache
-    keys:
-      - repo-{{ .Environment.CIRCLE_SHA1 }}
+    key: repo-{{ .Environment.CIRCLE_SHA1 }}
   - &save_repo_cache
     <<: *restore_repo_cache
     paths:
       - ./
   - &restore_node_modules_cache
-    keys:
-      - node_modules-{{ checksum "yarn.lock" }}
+    key: node_modules-{{ checksum "yarn.lock" }}
   - &save_node_modules_cache
     <<: *restore_node_modules_cache
     paths:
       - ./node_modules
   - &restore_build_cache
-    keys:
-      - assets-{{ .Environment.CIRCLE_SHA1 }}
+    key: assets-{{ .Environment.CIRCLE_SHA1 }}
   - &save_build_cache
     <<: *restore_build_cache
     paths:
@@ -31,6 +28,8 @@ aliases:
 
 jobs:
   checkout:
+    executor:
+      name: node/default
     steps:
       - checkout
       - save_cache: *save_repo_cache
@@ -51,15 +50,13 @@ jobs:
     executor:
       name: node/default
     steps:
-      - restore_cache:
-          keys:
-            - repo-{{ .Environment.CIRCLE_SHA1 }}
+      - restore_cache: *restore_repo_cache
       - run: node --version
       - run: yarn --version
       - run: yarn install
       - save_cache: *save_node_modules_cache
 
-  test:e2e:
+  test-e2e:
     executor:
       name: node/default
     steps:
@@ -67,15 +64,15 @@ jobs:
       - restore_cache: *restore_node_modules_cache
       - run: yarn test:e2e:coverage --maxWorkers=2
       - store_artifacts:
-        path: coverage-e2e/
+          path: coverage-e2e/
       - store_artifacts:
-        path: reports/junit/e2e/
+          path: reports/junit/e2e/
       - store_test_results:
-        path: coverage-e2e/
+          path: coverage-e2e/
       - store_test_results:
-        path: reports/junit/e2e/
+          path: reports/junit/e2e/
 
-  test:unit:
+  test-unit:
     executor:
       name: node/default
     steps:
@@ -83,15 +80,15 @@ jobs:
       - restore_cache: *restore_node_modules_cache
       - run: yarn test:coverage --maxWorkers=2
       - store_artifacts:
-        path: coverage/
+          path: coverage/
       - store_artifacts:
-        path: reports/junit/unit/
+          path: reports/junit/unit/
       - store_test_results:
-        path: coverage/
+          path: coverage/
       - store_test_results:
-        path: reports/junit/unit/
+          path: reports/junit/unit/
 
-  test:lint:
+  test-lint:
     executor:
       name: node/default
     steps:
@@ -99,9 +96,9 @@ jobs:
       - restore_cache: *restore_node_modules_cache
       - run: yarn lint:ci
       - store_artifacts:
-        path: reports/eslint.xml
+          path: reports/eslint.xml
       - store_test_results:
-        path: reports/eslint.xml
+          path: reports/eslint.xml
 
   build:
     executor:
@@ -112,36 +109,38 @@ jobs:
       - run: yarn build
       - save_cache: *save_build_cache
 
-  publish:develop:
+  publish-develop:
     executor:
-      name: docker/default
+      name: docker/docker
     steps:
       - restore_cache: *restore_repo_cache
       - restore_cache: *restore_build_cache
       - run: docker --version
-      - run: echo -n "$DOCKER_REGISTRY_PASSWORD" |docker login $DOCKER_REGISTRY -u $DOCKER_REGISTRY_USER --password-stdin
-      - docker/publish:
+      - docker/build:
+          image: k8s-hello-world-test
+          registry: $DOCKER_REGISTRY
+      - docker/push:
           image: k8s-hello-world-test
           registry: $DOCKER_REGISTRY
 
-  deploy:develop:
+  deploy-develop:
     executor:
-      name: helm/default
+      name: docker/docker
     steps:
       - restore_cache: *restore_repo_cache
       - restore_cache: *restore_build_cache
       - kubernetes/install-kubeconfig:
           kubeconfig: KUBECONFIG_DATA
       - helm/install-helm-client:
-          version: v3.2.2
+          version: v3.2.1
       - run: helm version
       - run: helm ls --namespace $HELM_NAMESPACE
       - run: helm repo add hcd $HELM_REGISTRY
       - run: helm repo update
       - helm/upgrade-helm-chart:
-          chart: k8s-hello-world-test
+          chart: hcd/k8s-hello-world-test
           namespace: $HELM_NAMESPACE
-          release_name: k8s-hello-world-test
+          release-name: k8s-hello-world-test
           values-to-override: image.tag=$CIRCLE_SHA1
       - run: helm ls --namespace $HELM_NAMESPACE
 
@@ -155,26 +154,28 @@ workflows:
       - install:
           requires:
             - version
-      - test:lint:
+      - test-lint:
           requires:
             - install
-      - test:unit:
+      - test-unit:
           requires:
             - install
-      - test:e2e:
+      - test-e2e:
           requires:
             - install
       - build:
           requires:
-            - test:lint
-            - test:unit
-            - test:e2e
-      - publish:develop:
+            - test-lint
+            - test-unit
+            - test-e2e
+      - publish-develop:
+          context: k8s-hello-world-test
           filters:
             branches:
               only: /^develop$/
           requires:
             - build
-      - deploy:develop:
+      - deploy-develop:
+          context: k8s-hello-world-test
           requires:
-            - publish:develop
+            - publish-develop
