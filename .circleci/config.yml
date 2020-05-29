@@ -13,6 +13,12 @@ aliases:
     <<: *restore_repo_cache
     paths:
       - ./
+  - &restore_version_cache
+    key: version-{{ .Environment.CIRCLE_SHA1 }}
+  - &save_version_cache
+    <<: *restore_version_cache
+    paths:
+      - ./VERSION
   - &restore_node_modules_cache
     key: node_modules-{{ checksum "yarn.lock" }}
   - &save_node_modules_cache
@@ -44,13 +50,14 @@ jobs:
       - run: cat package.json
       - run: yarn version --no-git-tag-version --allow-same-version $PACKAGE_VERSION
       - run: cat package.json
-      - save_cache: *save_repo_cache
+      - save_cache: *save_version_cache
 
   install:
     executor:
       name: node/default
     steps:
       - restore_cache: *restore_repo_cache
+      - restore_cache: *restore_version_cache
       - run: node --version
       - run: yarn --version
       - run: yarn install
@@ -61,6 +68,7 @@ jobs:
       name: node/default
     steps:
       - restore_cache: *restore_repo_cache
+      - restore_cache: *restore_version_cache
       - restore_cache: *restore_node_modules_cache
       - run: yarn test:e2e:coverage --maxWorkers=2
       - store_artifacts:
@@ -77,6 +85,7 @@ jobs:
       name: node/default
     steps:
       - restore_cache: *restore_repo_cache
+      - restore_cache: *restore_version_cache
       - restore_cache: *restore_node_modules_cache
       - run: yarn test:coverage --maxWorkers=2
       - store_artifacts:
@@ -93,6 +102,7 @@ jobs:
       name: node/default
     steps:
       - restore_cache: *restore_repo_cache
+      - restore_cache: *restore_version_cache
       - restore_cache: *restore_node_modules_cache
       - run: yarn lint:ci
       - store_artifacts:
@@ -105,6 +115,7 @@ jobs:
       name: node/default
     steps:
       - restore_cache: *restore_repo_cache
+      - restore_cache: *restore_version_cache
       - restore_cache: *restore_node_modules_cache
       - run: time yarn build
       - run: ls -alh dist/
@@ -117,11 +128,13 @@ jobs:
     steps:
       - setup_remote_docker
       - restore_cache: *restore_repo_cache
+      - restore_cache: *restore_version_cache
       - restore_cache: *restore_build_cache
       - run: docker --version
       - docker/build:
           image: k8s-hello-world-test
           registry: $DOCKER_REGISTRY
+      - run: echo -n "$DOCKER_PASSWORD" |docker login $DOCKER_REGISTRY -u $DOCKER_LOGIN --password-stdin
       - docker/push:
           image: k8s-hello-world-test
           registry: $DOCKER_REGISTRY
@@ -131,6 +144,7 @@ jobs:
       name: docker/docker
     steps:
       - restore_cache: *restore_repo_cache
+      - restore_cache: *restore_version_cache
       - restore_cache: *restore_build_cache
       - kubernetes/install-kubeconfig:
           kubeconfig: KUBECONFIG_DATA
