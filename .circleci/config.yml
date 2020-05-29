@@ -159,6 +159,8 @@ jobs:
           namespace: $HELM_NAMESPACE
           release-name: k8s-hello-world-test
           values-to-override: image.tag=$CIRCLE_SHA1
+          reuse-values: true
+          wait: false
       - run: helm ls --namespace $HELM_NAMESPACE
 
 workflows:
