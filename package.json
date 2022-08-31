@@ -30,7 +30,7 @@
         "@nestjs/swagger": "4.5.8",
         "@nestjs/terminus": "7.0.1",
         "convict": "6.0.0",
-        "fastify-swagger": "2.6.0",
+        "fastify-swagger": "5.2.0",
         "helmet": "3.22.0",
         "js-yaml": "3.14.0",
         "lodash": "4.17.19",
