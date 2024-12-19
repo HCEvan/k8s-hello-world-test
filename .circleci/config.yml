@@ -7,7 +7,7 @@ orbs:
   node: circleci/node@7.0.0
 
 aliases:
-  - node_version: &node_version '22.14'
+  - node_version: &node_version '22.12'
   - &restore_repo_cache
     key: repo-{{ .Environment.CIRCLE_SHA1 }}
   - &save_repo_cache
