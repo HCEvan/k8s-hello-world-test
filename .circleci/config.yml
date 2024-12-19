@@ -140,11 +140,11 @@ jobs:
       - restore_cache: *restore_build_cache
       - run: docker --version
       - docker/build:
-          image: k8s-hello-world-test
+          image: hcevan/k8s-hello-world-test
           registry: $DOCKER_REGISTRY
       - run: echo -n "$DOCKER_PASSWORD" |docker login $DOCKER_REGISTRY -u $DOCKER_LOGIN --password-stdin
       - docker/push:
-          image: k8s-hello-world-test
+          image: hcevan/k8s-hello-world-test
           registry: $DOCKER_REGISTRY
 
   deploy-develop:
@@ -161,7 +161,7 @@ jobs:
       - run: helm version
       - run: helm ls --namespace $HELM_NAMESPACE
       - helm/upgrade_helm_chart:
-          chart: $HELM_REGISTRY/k8s-hello-world-test
+          chart: $HELM_REGISTRY/hcevan/k8s-hello-world-test
           namespace: $HELM_NAMESPACE
           release_name: k8s-hello-world-test
           values_to_override: image.tag=$CIRCLE_SHA1
