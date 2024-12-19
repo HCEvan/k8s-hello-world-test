@@ -1,12 +1,13 @@
 version: 2.1
 
 orbs:
-  docker: circleci/docker@1.0.1
-  helm: circleci/helm@0.2.3
-  kubernetes: circleci/kubernetes@0.11.0
-  node: circleci/node@2.1.1
+  docker: circleci/docker@2.8.1
+  helm: circleci/helm@3.1.0
+  kubernetes: circleci/kubernetes@1.3.1
+  node: circleci/node@7.0.0
 
 aliases:
+  - node_version: &node_version '22.14'
   - &restore_repo_cache
     key: repo-{{ .Environment.CIRCLE_SHA1 }}
   - &save_repo_cache
@@ -36,13 +37,16 @@ jobs:
   checkout:
     executor:
       name: node/default
+      tag: *node_version
     steps:
       - checkout
       - save_cache: *save_repo_cache
 
   version:
+    docker:
     executor:
       name: node/default
+      tag: *node_version
     steps:
       - restore_cache: *restore_repo_cache
       - run: export PACKAGE_VERSION=$(cat VERSION)
@@ -55,6 +59,7 @@ jobs:
   install:
     executor:
       name: node/default
+      tag: *node_version
     steps:
       - restore_cache: *restore_repo_cache
       - restore_cache: *restore_version_cache
@@ -66,6 +71,7 @@ jobs:
   test-e2e:
     executor:
       name: node/default
+      tag: *node_version
     steps:
       - restore_cache: *restore_repo_cache
       - restore_cache: *restore_version_cache
@@ -83,6 +89,7 @@ jobs:
   test-unit:
     executor:
       name: node/default
+      tag: *node_version
     steps:
       - restore_cache: *restore_repo_cache
       - restore_cache: *restore_version_cache
@@ -100,6 +107,7 @@ jobs:
   test-lint:
     executor:
       name: node/default
+      tag: *node_version
     steps:
       - restore_cache: *restore_repo_cache
       - restore_cache: *restore_version_cache
@@ -113,6 +121,7 @@ jobs:
   build:
     executor:
       name: node/default
+      tag: *node_version
     steps:
       - restore_cache: *restore_repo_cache
       - restore_cache: *restore_version_cache
@@ -149,7 +158,7 @@ jobs:
       - kubernetes/install-kubeconfig:
           kubeconfig: KUBECONFIG_DATA
       - helm/install-helm-client:
-          version: v3.2.1
+          version: v3.8.2
       - run: helm version
       - run: helm ls --namespace $HELM_NAMESPACE
       - run: helm repo add hcd $HELM_REGISTRY
@@ -157,9 +166,9 @@ jobs:
       - helm/upgrade-helm-chart:
           chart: hcd/k8s-hello-world-test
           namespace: $HELM_NAMESPACE
-          release-name: k8s-hello-world-test
-          values-to-override: image.tag=$CIRCLE_SHA1
-          reuse-values: true
+          release_name: k8s-hello-world-test
+          values_to_override: image.tag=$CIRCLE_SHA1
+          reuse_values: true
           wait: false
       - run: helm ls --namespace $HELM_NAMESPACE
 
