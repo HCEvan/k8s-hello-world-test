@@ -157,13 +157,13 @@ jobs:
       - restore_cache: *restore_build_cache
       - kubernetes/install-kubeconfig:
           kubeconfig: KUBECONFIG_DATA
-      - helm/install-helm-client:
+      - helm/install_helm_client:
           version: v3.8.2
       - run: helm version
       - run: helm ls --namespace $HELM_NAMESPACE
       - run: helm repo add hcd $HELM_REGISTRY
       - run: helm repo update
-      - helm/upgrade-helm-chart:
+      - helm/upgrade_helm_chart:
           chart: hcd/k8s-hello-world-test
           namespace: $HELM_NAMESPACE
           release_name: k8s-hello-world-test
