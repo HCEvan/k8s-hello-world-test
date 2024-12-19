@@ -5,7 +5,8 @@ import * as request from 'supertest';
 
 import { HelloModule } from './hello.module';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// Need to import the package.json file to get the package version.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { version: appVersion } = require('../../../package.json');
 
 describe('HelloController (e2e)', () => {

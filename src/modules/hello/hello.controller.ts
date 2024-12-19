@@ -4,7 +4,8 @@ import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { HelloResponseDto } from './dtos';
 import { HelloService } from './hello.service';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// Need to import the package.json file to get the package version.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const packageJson = require('../../../package.json');
 
 @Controller()

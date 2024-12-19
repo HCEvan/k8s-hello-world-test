@@ -5,12 +5,13 @@ import * as yaml from 'js-yaml';
 import { schema } from './config.schema';
 
 convict.addParser([
-    { extension: ['yml', 'yaml'], parse: yaml.safeLoad },
+    { extension: ['yml', 'yaml'], parse: yaml.load },
     { extension: 'js', parse: require },
 ]);
 
 export const config: convict.Config<any> = convict(schema);
 
+// @ts-expect-error convict has deep type inspection issues currently as per https://github.com/mozilla/node-convict/issues/402
 const env = config.get('environment');
 
 const configFiles = [

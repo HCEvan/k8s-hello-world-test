@@ -3,18 +3,19 @@ import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { trim } from 'lodash';
-import * as helmet from 'helmet';
+import helmet from 'helmet';
 import * as morgan from 'morgan';
 
-import { AppModule } from './app.module';
 import { ConfigService } from './modules/config/config.service';
+
+import { AppModule } from './app.module';
 
 async function bootstrap() {
     const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter());
 
-    const configService: ConfigService = app.get('ConfigService');
+    const configService: ConfigService = app.get<ConfigService>(ConfigService);
     const globalPrefix = trim(configService.get('server.globalPrefix'), '/');
-    const logger = new Logger('Main', true);
+    const logger = new Logger('Main');
     const swaggerPrefix = configService.get('server.swagger.prefix');
 
     app.enableCors();
@@ -29,7 +30,8 @@ async function bootstrap() {
     }));
 
     if (configService.get('server.swagger.enabled')) {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        // Expect to import the package.json to show the version.
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const packageJson = require('../package.json');
 
         const swaggerOptions = new DocumentBuilder()
@@ -54,4 +56,4 @@ async function bootstrap() {
     }
 }
 
-bootstrap();
+void bootstrap();

@@ -8,7 +8,7 @@ export const schema: convict.Schema<any> = {
             'development',
             'test',
         ],
-        default: 'production',
+        default: 'production' as string,
         env: 'NODE_ENV',
     },
     server: {
