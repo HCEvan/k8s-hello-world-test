@@ -1,6 +1,6 @@
 dependencies:
 - name: common
-  repository: https://kubernetes-charts-incubator.storage.googleapis.com
-  version: 0.0.5
-digest: sha256:3f6b5e5bfc3d84ce9448284d8c8865908bb6f5c43b1cd782fa87ae9105d729b7
-generated: "2020-05-29T01:50:29.208610979+01:00"
+  repository: oci://tccr.io/truecharts
+  version: 25.2.2
+digest: sha256:8b19f179e454c98d3a28c2cf811d71b270ebe4deceffe5b029bd4f9160ff025b
+generated: "2024-12-19T04:38:26.008517955Z"
