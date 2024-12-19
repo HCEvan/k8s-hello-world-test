@@ -43,7 +43,6 @@ jobs:
       - save_cache: *save_repo_cache
 
   version:
-    docker:
     executor:
       name: node/default
       tag: *node_version
