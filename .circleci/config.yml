@@ -157,11 +157,11 @@ jobs:
       - kubernetes/install-kubeconfig:
           kubeconfig: KUBECONFIG_DATA
       - helm/install_helm_client:
-          version: v3.8.2
+          version: v3.16.3
       - run: helm version
       - run: helm ls --namespace $HELM_NAMESPACE
       - helm/upgrade_helm_chart:
-          chart: $HELM_REGISTRY/hcevan/k8s-hello-world-test
+          chart: oci://$HELM_REGISTRY/hcevan/k8s-hello-world-test
           namespace: $HELM_NAMESPACE
           release_name: k8s-hello-world-test
           values_to_override: image.tag=$CIRCLE_SHA1
