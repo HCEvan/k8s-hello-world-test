@@ -36,7 +36,7 @@
         "helmet": "8.0.0",
         "js-yaml": "4.1.0",
         "lodash": "4.17.21",
-        "morgan": "1.10.0",
+        "morgan": "1.10.1",
         "reflect-metadata": "0.2.2",
         "rimraf": "6.0.1",
         "rxjs": "7.8.1"
@@ -52,7 +52,7 @@
         "@types/jest": "29.5.14",
         "@types/js-yaml": "4.0.9",
         "@types/lodash": "4.17.20",
-        "@types/morgan": "1.9.9",
+        "@types/morgan": "1.9.10",
         "@types/node": "24.1.0",
         "@types/supertest": "6.0.2",
         "@typescript-eslint/eslint-plugin": "8.21.0",
