@@ -34,7 +34,7 @@
         "convict": "6.2.4",
         "fastify-swagger": "5.2.0",
         "helmet": "8.1.0",
-        "js-yaml": "4.1.0",
+        "js-yaml": "4.1.1",
         "lodash": "4.17.21",
         "morgan": "1.10.1",
         "reflect-metadata": "0.2.2",
