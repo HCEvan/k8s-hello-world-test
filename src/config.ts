@@ -1,4 +1,4 @@
-import * as convict from 'convict';
+import convict from 'convict';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 

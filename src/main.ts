@@ -4,7 +4,7 @@ import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { trim } from 'lodash';
 import helmet from 'helmet';
-import * as morgan from 'morgan';
+import morgan from 'morgan';
 
 import { ConfigService } from './modules/config/config.service';
 
