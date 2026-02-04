@@ -49,6 +49,11 @@ describe('ConfigService', () => {
             expect(defaultValue).toEqual('/swagger');
             expect(currentValue).toEqual('/docs');
             expect(currentValue).not.toEqual(defaultValue);
-        })
+        });
+
+        it('should return default values for other configuration options', () => {
+            expect(service.default('server.host')).toEqual('0.0.0.0');
+            expect(service.default('server.port')).toEqual(3000);
+        });
     });
 });
