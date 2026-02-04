@@ -49,6 +49,18 @@ describe('HelloService', () => {
 
             expect(service.getSwaggerEnabled()).toEqual(false);
         });
+
+        it('should return true when swagger is enabled', () => {
+            config = {
+                server: {
+                    swagger: {
+                        enabled: true,
+                    },
+                },
+            };
+
+            expect(service.getSwaggerEnabled()).toEqual(true);
+        });
     });
 
     describe('getSwaggerPrefix', () => {
@@ -63,6 +75,27 @@ describe('HelloService', () => {
 
             expect(service.getSwaggerPrefix()).toEqual('/docs');
         });
+
+        it('should return different prefix values', () => {
+            const testCases = [
+                '/api-docs',
+                '/swagger',
+                '/docs',
+                '/api/v1/docs',
+            ];
+
+            testCases.forEach(prefix => {
+                config = {
+                    server: {
+                        swagger: {
+                            prefix,
+                        },
+                    },
+                };
+
+                expect(service.getSwaggerPrefix()).toEqual(prefix);
+            });
+        });
     });
 
     describe('getHostname', () => {
@@ -71,6 +104,19 @@ describe('HelloService', () => {
 
             expect(hostname).toBeDefined();
             expect(hostname).not.toEqual('');
+        });
+
+        it('should return a string', () => {
+            const hostname = service.getHostname();
+
+            expect(typeof hostname).toBe('string');
+        });
+
+        it('should return consistent hostname across multiple calls', () => {
+            const hostname1 = service.getHostname();
+            const hostname2 = service.getHostname();
+
+            expect(hostname1).toBe(hostname2);
         });
     });
 });
