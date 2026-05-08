@@ -30,7 +30,7 @@
         "@nestjs/platform-fastify": "11.1.13",
         "@nestjs/swagger": "11.2.5",
         "@nestjs/terminus": "11.0.0",
-        "axios": "1.13.5",
+        "axios": "1.15.2",
         "convict": "6.2.4",
         "fastify-swagger": "5.2.0",
         "helmet": "8.1.0",
